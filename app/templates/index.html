@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask K8s App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto">
+            <h1 class="text-4xl font-bold text-center text-blue-600 mb-8">Flask K8s Application</h1>
+            
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-2xl font-semibold mb-4">System Information</h2>
+                <button id="loadInfo" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Load System Info
+                </button>
+                <div id="systemInfo" class="mt-4 p-4 bg-gray-50 rounded hidden"></div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-semibold mb-4">Send Data</h2>
+                <form id="dataForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Name:</label>
+                        <input type="text" id="name" name="name" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Message:</label>
+                        <textarea id="message" name="message" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                    <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                        Send Data
+                    </button>
+                </form>
+                <div id="response" class="mt-4 p-4 bg-gray-50 rounded hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load system info
+        document.getElementById('loadInfo').addEventListener('click', async function() {
+            try {
+                const response = await fetch('/api/data');
+                const data = await response.json();
+                const infoDiv = document.getElementById('systemInfo');
+                infoDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                infoDiv.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error loading system info');
+            }
+        });
+
+        // Send form data
+        document.getElementById('dataForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                message: document.getElementById('message').value
+            };
+
+            try {
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                const responseDiv = document.getElementById('response');
+                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                responseDiv.classList.remove('hidden');
+                
+                if (response.ok) {
+                    document.getElementById('dataForm').reset();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error sending data');
+            }
+        });
+    </script>
+</body>
+</html>
